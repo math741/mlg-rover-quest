@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0e0f12">
+<title>MLG ROVER Ω · Controle</title>
+<link rel="stylesheet" href="estilo.css">
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js", "three/addons/": "./vendor/addons/" } }</script>
+<script src="dados.js"></script>
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<header class="topo">
+  <div class="marca"><b>MLG ROVER <i>Ω</i></b><span>AutoGPT 2S 4×4</span></div>
+  <span id="conexao" class="pill">conectando…</span>
+</header>
+
+<main>
+  <!-- ================= início ================= -->
+  <section id="tela-inicio" class="tela">
+    <div class="cards">
+      <button type="button" class="card destaque" id="b-montar-ar">
+        <span class="tag">Quest 3S · AR</span>
+        <h2>Montar com o Quest</h2>
+        <p>O rover em holograma no tamanho real em cima da mesa, passo a passo. A câmera do Quest reconhece cada peça pelo adesivo e diz se é a certa.</p>
+      </button>
+      <button type="button" class="card" id="b-pilotar-xr">
+        <span class="tag">Quest 3S</span>
+        <h2>Pilotar com o Quest</h2>
+        <p>Telão com a câmera do rover. Controle esquerdo acelera, direito vira. Sem controle: faça a pinça e empurre.</p>
+      </button>
+      <button type="button" class="card" id="b-pilotar">
+        <span class="tag">Celular ou PC</span>
+        <h2>Pilotar pela tela</h2>
+        <p>Vídeo da webcam e dois joysticks. No PC: W A S D ou setas, Shift = turbo, espaço = parar.</p>
+      </button>
+      <button type="button" class="card" id="b-montar">
+        <span class="tag">Celular ou PC</span>
+        <h2>Montagem na tela</h2>
+        <p>O mesmo passo a passo em 3D, com scanner pela câmera do celular.</p>
+      </button>
+    </div>
+    <div class="cam-linha">
+      <button type="button" id="b-camera" class="btn">Ativar câmera para escanear</button>
+      <span id="cam-estado" class="fraco">No Quest, ative antes de entrar no AR.</span>
+    </div>
+    <p id="adesivos" class="fraco" hidden>Folha de adesivos das peças: <a href="adesivos.pdf" target="_blank" rel="noopener">abrir o PDF</a> (imprima em tamanho real, 100%).</p>
+    <p id="xr-aviso" class="aviso" hidden></p>
+    <div id="info" class="info"></div>
+  </section>
+
+  <!-- ================= pilotar pela tela ================= -->
+  <section id="tela-pilotar" class="tela" hidden>
+    <div class="video">
+      <canvas id="video" width="640" height="480"></canvas>
+      <div id="sem-video" class="sem-video">aguardando o vídeo da webcam…</div>
+      <div id="hud" class="hud"></div>
+      <div id="aviso-pilotar" class="toast" hidden></div>
+    </div>
+    <div class="controles">
+      <div class="joy" id="joy-acel" data-eixo="y"><div class="trilho v"></div><div class="manete"></div><span>frente / ré</span></div>
+      <div class="barra">
+        <button type="button" id="p-parar" class="btn perigo">PARAR</button>
+        <button type="button" id="p-turbo" class="btn" aria-pressed="false">Turbo</button>
+        <div class="trim"><button type="button" id="p-tm" class="btn sm">◀</button><span>centro do servo</span><button type="button" id="p-tp" class="btn sm">▶</button></div>
+        <button type="button" id="p-sair" class="btn">Sair</button>
+      </div>
+      <div class="joy" id="joy-dir" data-eixo="x"><div class="trilho h"></div><div class="manete"></div><span>direção</span></div>
+    </div>
+  </section>
+
+  <!-- ================= montagem na tela ================= -->
+  <section id="tela-montar" class="tela" hidden>
+    <div class="m3d" id="m3d"></div>
+    <aside class="mpainel">
+      <div class="mtopo"><span id="m-passo"></span><div class="prog"><i id="m-prog"></i></div></div>
+      <h2 id="m-titulo"></h2>
+      <div class="scan" id="m-scan" hidden><canvas id="m-overlay"></canvas></div>
+      <div id="m-msg" class="msg"></div>
+      <p id="m-texto"></p>
+      <h3>Peças de MDF</h3>
+      <ul id="m-pecas" class="pecas"></ul>
+      <p id="m-comprados" class="fraco"></p>
+      <div class="mbotoes">
+        <button type="button" id="m-ant" class="btn">◀ Voltar</button>
+        <button type="button" id="m-prox" class="btn">Próximo ▶</button>
+        <button type="button" id="m-rep" class="btn">Animar</button>
+        <button type="button" id="m-cam" class="btn">Câmera</button>
+        <button type="button" id="m-sair" class="btn">Sair</button>
+      </div>
+    </aside>
+  </section>
+</main>
+<div id="carregando" class="carregando" hidden><div class="spin"></div><p>Montando o modelo 3D…</p></div>
+</body>
+</html>
