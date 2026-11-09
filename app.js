@@ -7,8 +7,11 @@ import { Montagem, POR_ID, TESTE_ID } from './montagem.js';
 import { MontagemAR, PilotagemXR, suporteXR } from './xr.js';
 
 const $ = s => document.querySelector(s);
-// Aberto pelo GitHub Pages (ou outro site que não é o rover): só a montagem funciona
-const SEM_ROVER = /(^|\.)github\.io$/.test(location.hostname) || new URLSearchParams(location.search).has('montagem');
+// Aberto por um site da internet (GitHub Pages etc.) e não pelo rover: só a montagem funciona.
+// O rover é sempre um IP, um nome .local, localhost ou um nome sem ponto.
+const h = location.hostname;
+const NO_ROVER = /^\d+\.\d+\.\d+\.\d+$/.test(h) || h.endsWith('.local') || h === 'localhost' || !h.includes('.');
+const SEM_ROVER = !NO_ROVER || new URLSearchParams(location.search).has('montagem');
 const link = new Link(!SEM_ROVER);
 const scanner = new Scanner();
 let montagem = null;
