@@ -102,10 +102,19 @@ export const PECAS = [
 "dica": ""
 },
 {
+"code": "SM",
+"nome": "Cruzeta do motor (cubo + 3 braços que colam no cano)",
+"qtd": 2,
+"passo": 6,
+"id": null,
+"lado": 0,
+"dica": "2 cruzetas redondas (cubo com 3 braços)"
+},
+{
 "code": "PR",
 "nome": "Prateleira eletrônica",
 "qtd": 1,
-"passo": 6,
+"passo": 7,
 "id": 9,
 "lado": 20,
 "dica": ""
@@ -114,7 +123,7 @@ export const PECAS = [
 "code": "ES",
 "nome": "Espaçador do Pi (anel de MDF)",
 "qtd": 4,
-"passo": 6,
+"passo": 7,
 "id": null,
 "lado": 0,
 "dica": "4 anéis pequenos"
@@ -123,7 +132,7 @@ export const PECAS = [
 "code": "BP",
 "nome": "Bandeja do power bank",
 "qtd": 1,
-"passo": 6,
+"passo": 7,
 "id": 10,
 "lado": 20,
 "dica": ""
@@ -132,7 +141,7 @@ export const PECAS = [
 "code": "MV1",
 "nome": "Manga · placa do motor · camada encostada no TT",
 "qtd": 2,
-"passo": 8,
+"passo": 9,
 "id": 11,
 "lado": 16,
 "dica": ""
@@ -141,7 +150,7 @@ export const PECAS = [
 "code": "MV2",
 "nome": "Manga · placa do motor · camada das porcas cativas",
 "qtd": 2,
-"passo": 8,
+"passo": 9,
 "id": 12,
 "lado": 16,
 "dica": ""
@@ -150,7 +159,7 @@ export const PECAS = [
 "code": "MB",
 "nome": "Manga · fundo (apoia na língua do chassi)",
 "qtd": 2,
-"passo": 8,
+"passo": 9,
 "id": 13,
 "lado": 20,
 "dica": ""
@@ -159,7 +168,7 @@ export const PECAS = [
 "code": "MT",
 "nome": "Manga · orelha de cima (encosta no teto)",
 "qtd": 2,
-"passo": 8,
+"passo": 9,
 "id": 14,
 "lado": 16,
 "dica": ""
@@ -168,7 +177,7 @@ export const PECAS = [
 "code": "MA",
 "nome": "Manga · braço de direção (2 camadas)",
 "qtd": 4,
-"passo": 8,
+"passo": 9,
 "id": 15,
 "lado": 9,
 "dica": ""
@@ -177,7 +186,7 @@ export const PECAS = [
 "code": "MP",
 "nome": "Pino de MDF Ø8 (pivô da manga)",
 "qtd": 4,
-"passo": 8,
+"passo": 9,
 "id": null,
 "lado": 0,
 "dica": "4 discos de 8 mm"
@@ -186,7 +195,7 @@ export const PECAS = [
 "code": "BD",
 "nome": "Barra de direção (MDF, 48,4 mm entre furos)",
 "qtd": 2,
-"passo": 8,
+"passo": 9,
 "id": null,
 "lado": 0,
 "dica": "2 barrinhas com um furo em cada ponta (48 mm entre os furos)"
@@ -195,7 +204,7 @@ export const PECAS = [
 "code": "TB",
 "nome": "Travessa do power bank (entra pelas fendas das paredes)",
 "qtd": 2,
-"passo": 9,
+"passo": 10,
 "id": null,
 "lado": 0,
 "dica": "2 barras compridas e finas"
@@ -204,7 +213,7 @@ export const PECAS = [
 "code": "TE",
 "nome": "Teto / rack (as asas seguram os pinos das mangas)",
 "qtd": 1,
-"passo": 10,
+"passo": 11,
 "id": 16,
 "lado": 20,
 "dica": ""
@@ -213,7 +222,7 @@ export const PECAS = [
 "code": "AN",
 "nome": "Antena (MDF, só estética)",
 "qtd": 1,
-"passo": 10,
+"passo": 11,
 "id": null,
 "lado": 0,
 "dica": "vareta comprida e fina"
@@ -222,7 +231,7 @@ export const PECAS = [
 "code": "PC",
 "nome": "Para-choque (2 camadas)",
 "qtd": 2,
-"passo": 10,
+"passo": 11,
 "id": 17,
 "lado": 20,
 "dica": ""
@@ -231,7 +240,7 @@ export const PECAS = [
 "code": "WC",
 "nome": "Bolsão da base da webcam (colado no teto)",
 "qtd": 1,
-"passo": 11,
+"passo": 12,
 "id": null,
 "lado": 0,
 "dica": "moldura retangular (anel de 3 mm)"
@@ -240,9 +249,18 @@ export const PECAS = [
 "code": "WP",
 "nome": "Ponte da webcam (prende a base dobrada)",
 "qtd": 1,
-"passo": 11,
+"passo": 12,
 "id": null,
 "lado": 0,
 "dica": "peça em forma de U"
+},
+{
+"code": "SA",
+"nome": "Asa da saia (MDF, colada embaixo do chassi)",
+"qtd": 2,
+"passo": 14,
+"id": 18,
+"lado": 20,
+"dica": ""
 }
 ];

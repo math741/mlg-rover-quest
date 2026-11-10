@@ -40,6 +40,7 @@ export class Link extends EventTarget {
   soltar() { this._cmd = { acel: 0, dir: 0, turbo: false }; this._enviarCmd(true); this._pilotando = false; }
   parar() { this._cmd = { acel: 0, dir: 0, turbo: false }; this._send({ t: 'parar' }); }
   trim(delta) { this._send({ t: 'trim', delta }); }
+  succao(nivel) { this._send({ t: 'succao', nivel: +Math.max(0, Math.min(1, nivel)).toFixed(3) }); }   // turbina de sucção, 0 – 1
   _enviarCmd(forcar) {
     if (!this._pilotando && !forcar) return;
     const c = this._cmd;

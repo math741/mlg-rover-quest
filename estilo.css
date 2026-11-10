@@ -43,6 +43,9 @@ main{height:calc(100% - 61px)}
 .manete{position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffd457,#d39a00);box-shadow:0 4px 14px rgba(0,0,0,.5);pointer-events:none}
 .barra{display:flex;flex-direction:column;gap:8px;align-items:stretch;min-width:150px}
 .trim{display:flex;align-items:center;gap:6px;justify-content:center}.trim span{font-size:11px;color:var(--fr);text-align:center}
+.suc{display:flex;flex-direction:column;gap:2px;padding:6px 8px;border-radius:12px;background:var(--p2);border:1px solid var(--bd)}
+.suc label{display:flex;justify-content:space-between;gap:6px;font-size:12px;color:var(--fr)}.suc output{color:#ffd457;font-weight:700}
+.suc input{width:100%;accent-color:#f6bd16;height:28px;margin:0}
 
 /* ---- montagem na tela ---- */
 #tela-montar{display:grid;grid-template-columns:1fr 400px}

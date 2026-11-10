@@ -285,7 +285,7 @@ export class PilotagemXR {
     this.tela.position.set(0, 1.42, -1.9); this.cena.add(this.tela);
     const moldura = new THREE.Mesh(new THREE.PlaneGeometry(1.66, 1.26), new THREE.MeshBasicMaterial({ color: 0x0b0b0d }));
     moldura.position.set(0, 1.42, -1.902); this.cena.add(moldura);
-    this.hud = new Painel(1200, 330, 1.05);
+    this.hud = new Painel(1200, 412, 1.05);
     this.hud.mesh.position.set(0, .66, -1.55); this.hud.mesh.rotation.x = -.42; this.cena.add(this.hud.mesh);
     this.ponteiros = new Ponteiros(renderer, this.cena);
     this.ponteiros.alvos = [this.hud.mesh];
@@ -293,6 +293,7 @@ export class PilotagemXR {
     this.ponteiros.onInicio = c => this._maoInicio(c);
     this.ponteiros.onFim = c => this._maoFim(c);
     this.turbo = false; this.mao = null; this.cmd = { acel: 0, dir: 0 };
+    this.suc = 0; this._tSuc = 0;                                            // turbina de sucção (0 – 1, de 20 em 20%)
     this._tHud = 0; this._n = -1;
   }
 
@@ -310,7 +311,11 @@ export class PilotagemXR {
     this.ponteiros.vibrar(null, .3, 25);
     if (b.id === 'sair') return this.sair();
     if (b.id === 'turbo') this.turbo = !this.turbo;
-    if (b.id === 'parar') this.link.parar();
+    if (b.id === 'parar') { this.link.parar(); this.suc = 0; }
+    if (b.id === 'sp' || b.id === 'sm' || b.id === 's0') {
+      this.suc = b.id === 's0' ? 0 : Math.round(Math.max(0, Math.min(1, this.suc + (b.id === 'sp' ? .2 : -.2))) * 10) / 10;
+      this._tSuc = performance.now(); this.link.succao(this.suc);
+    }
     if (b.id === 'tm') this.link.trim(-5);
     if (b.id === 'tp') this.link.trim(5);
     this._hud();
@@ -373,6 +378,20 @@ export class PilotagemXR {
     P.botao('turbo', 460, 248, 200, 62, this.turbo ? 'Turbo ligado' : 'Turbo', { cor: this.turbo ? '#7a5a00' : null });
     P.botao('tm', 680, 248, 230, 62, '◀ Centro do servo', { fs: 22 });
     P.botao('tp', 930, 248, 230, 62, 'Centro do servo ▶', { fs: 22 });
+    // turbina de sucção
+    const sc = pl && pl.succao;
+    if (sc && sc.alvo === 0 && this.suc > 0 && performance.now() - this._tSuc > 1500) this.suc = 0;   // o rover desligou (PARAR ou sinal)
+    const nv = sc ? sc.nivel : 0;
+    x.fillStyle = COR.fraco; x.font = `700 20px ${FONTE}`; x.fillText('SUCÇÃO', 40, 362);
+    retArred(x, 470, 334, 300, 46, 14); x.fillStyle = 'rgba(255,255,255,.08)'; x.fill();
+    if (nv > 0) { retArred(x, 470, 334, Math.max(28, 300 * nv), 46, 14); x.fillStyle = COR.amarelo; x.fill(); }
+    x.fillStyle = nv > .45 ? '#1b1b1b' : COR.texto; x.font = `700 24px ${FONTE}`; x.textAlign = 'center';
+    x.fillText(nv > .005 ? `${Math.round(nv * 100)}%` : 'desligada', 620, 366); x.textAlign = 'left';
+    x.fillStyle = COR.fraco; x.font = `400 20px ${FONTE}`;
+    x.fillText(nv > .005 && typeof sucKg === 'function' ? `≈ ${sucKg(nv).toFixed(1).replace('.', ',')} kg pra baixo` : 'turbina parada', 930, 366);
+    P.botao('s0', 150, 328, 140, 58, 'Desligar', { fs: 22, off: !sc || !sc.escs });
+    P.botao('sm', 304, 328, 150, 58, 'Sucção −', { fs: 22, off: !sc || !sc.escs });
+    P.botao('sp', 786, 328, 130, 58, '+', { fs: 30, off: !sc || !sc.escs });
     P.desenharBotoes();
     P.publicar();
   }

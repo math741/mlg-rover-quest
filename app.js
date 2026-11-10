@@ -43,10 +43,11 @@ function garantirMontagem() {
 
 /* ---------------- telas ---------------- */
 function mostrar(nome) {
+  const saiuDePilotar = tela === 'pilotar' && nome !== 'pilotar';
   tela = nome;
   for (const s of document.querySelectorAll('.tela')) s.hidden = s.id !== 'tela-' + nome;
-  if (nome === 'pilotar') { link.video(true); }
-  else { link.soltar(); link.video(false); }
+  if (nome === 'pilotar') { link.video(true); sucUI(0); }
+  else { if (saiuDePilotar) link.succao(0); link.soltar(); link.video(false); }
   if (nome === 'montar') {
     const m = garantirMontagem();
     m.obj.removeFromParent(); cena.add(m.obj);
@@ -168,7 +169,12 @@ setInterval(() => {
   link.pilotar(Math.max(-1, Math.min(1, acel)), Math.max(-1, Math.min(1, dir)), turbo || k('shift'));
 }, 50);
 $('#p-sair').addEventListener('click', () => mostrar('inicio'));
-$('#p-parar').addEventListener('click', () => link.parar());
+$('#p-parar').addEventListener('click', () => { link.parar(); sucUI(0); });
+// turbina de sucção: a barra manda o nível; o rover desliga sozinho no PARAR, ao sair desta tela ou se o sinal cair
+const sucEl = $('#p-suc');
+let tSuc = 0;
+function sucUI(v) { sucEl.value = v; $('#p-suc-o').textContent = v ? v + '%' : 'desligada'; }
+sucEl.addEventListener('input', () => { const v = +sucEl.value; sucUI(v); tSuc = performance.now(); link.succao(v / 100); });
 $('#p-turbo').addEventListener('click', e => { turbo = !turbo; e.currentTarget.setAttribute('aria-pressed', String(turbo)); });
 $('#p-tm').addEventListener('click', () => link.trim(-5));
 $('#p-tp').addEventListener('click', () => link.trim(5));
@@ -192,8 +198,11 @@ setInterval(() => {
     ['Direção', p ? Math.round(p.dir * 30) + '°' : '—'],
     ['Pi', pi && pi.temp != null ? String(pi.temp).replace('.', ',') + ' °C' : '—'],
     ['Ping', link.rtt != null ? Math.round(link.rtt) + ' ms' : '—'],
+    ...(p && p.succao && p.succao.escs ? [['Sucção', p.succao.nivel > .005 ? `${Math.round(p.succao.nivel * 100)}% · ≈ ${(typeof sucKg === 'function' ? sucKg(p.succao.nivel) : 0).toFixed(1).replace('.', ',')} kg` : 'desligada']] : []),
     ...(p && p.parado && link.online ? [['Parado', p.parado]] : []),
   ].map(([k, v]) => `<div>${k}<b>${v}</b></div>`).join('');
+  // se o rover desligou a turbina (PARAR, sinal caiu), a barra volta para zero
+  if (p && p.succao && p.succao.alvo === 0 && +sucEl.value > 0 && performance.now() - tSuc > 1500) sucUI(0);
 }, 200);
 
 /* ---------------- montagem na tela ---------------- */

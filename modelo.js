@@ -50,6 +50,7 @@ function initMaterials() {
     rock: S(0x6f6a63, .95), petgG: P(0x8e9399, .42), petgN: P(0xe6e1d3, .36), hole: S(0x050506, .95),
     co2: S(0x8a1d1a, .32, .35), alu: S(0xa9adb2, .3, .9), tpu: S(0x2a2c30, .85), hose: S(0x3d8bff, .25, 0, { transparent: true, opacity: .72 }), lipo: S(0x1d3f8a, .45),
     mdf: S(0xc4a27a, .78), mdfE: S(0x4b2f1c, .9),
+    prop: S(0xf26b1d, .42), eva: S(0x1b1c1f, .93), esc: S(0x2a59c9, .38), glue: S(0xf4f1e8, .3, 0, { transparent: true, opacity: .6 }),
   });
 }
 function textTex(w, h, draw) {
@@ -312,7 +313,7 @@ function mkMDF(b, R) {
   return (parent, part, sub, code, plane, off, outline, holes = [], o = {}) => {
     const d = o.d || TH, me = b.meshMDF(mdfGeo(outline, holes, plane, d), part, sub, parent);
     if (plane === 'xz') me.position.y = off; else if (plane === 'xy') me.position.z = off; else me.position.x = off;
-    if (o.exp !== false) R.cut.push({ code, name: sub, part, outline, holes, qty: o.qty || 1, d });
+    if (o.exp !== false) (o.sheet === 2 ? R.cut2 : R.cut).push({ code, name: o.name || sub, part, outline, holes, qty: o.qty || 1, d });   // sheet 2: chapinha da sucção
     me.userData.code = code;
     return me;
   };
@@ -341,7 +342,7 @@ function buildRover() {
   const b = new Builder();
   const stand = new THREE.Group(); stand.position.set(82.5, 0, 0);
   const root = new THREE.Group(); root.position.set(-82.5, 0, 0); stand.add(root);
-  const R = { stand, root, b, groups: [], anchors: {}, spinners: [], shafts: [], wires: [], fast: [], tex: {}, cut: [] };
+  const R = { stand, root, b, groups: [], anchors: {}, spinners: [], shafts: [], wires: [], fast: [], tex: {}, cut: [], cut2: [] };
   const grp = (name, ex, step, parent = root, pos) => {
     const g = new THREE.Group(); g.name = name; if (pos) g.position.copy(pos);
     Object.assign(g.userData, { base: g.position.clone(), ex: V3(...ex), step }); parent.add(g); R.groups.push(g); return g;
@@ -402,7 +403,7 @@ function buildRover() {
     M(gm, 'travessa', 'Placa do motor traseiro · camada das porcas cativas', 'PM2', 'xy', 46.4, RB(-37, 10, -28, 8.5), pmB, { exp: side > 0, qty: 2 });
     buildTT(b, R, gm, V3(-22.5, -16.5, KP[1]), Math.PI, side < 0 ? 'mRL' : 'mRR');
     for (const y of [-23, -10]) { R.F('p3', 25, 'J02', 3, gm, V3(-.5, y, 71.2), V3(0, 0, -1)); R.F('n3', 0, 'J02', 3, gm, V3(-.5, y, 49.4), V3(0, 0, -1)); }
-    const gw = grp('rodaR' + side, [0, 0, 40], 12, gm, V3(-22.5, -16.5, 88));
+    const gw = grp('rodaR' + side, [0, 0, 40], 13, gm, V3(-22.5, -16.5, 88));
     R.spinners.push(buildWheel(b, gw, V3()));
   }
   b.inst = undefined;
@@ -419,7 +420,7 @@ function buildRover() {
   at(b.mesh(G.rbox(32, 1.6, 6, .7), MAT.white, 'servo', 'Braço duplo do servo (vem com ele)', hp), 0, .8, 0);
   const hornO = [[-12, -5], [21, -5], [21, -13], [31, -13], [31, 13], [21, 13], [21, 5], [-12, 5]];
   M(hp, 'braco', 'Braço do servo em MDF (2 furos Ø3,4)', 'BS', 'xz', 1.6, hornO, [CI(0, 0, 3), CI(-9, 0, .6), CI(9, 0, .6), CI(26, -8, 1.7), CI(26, 8, 1.7)]);
-  for (const z of [-8, 8]) { R.F('p3', 12, 'J03', 8, hp, V3(26, 7.6, z), NEG_Y); R.F('y3', 0, 'J03', 8, hp, V3(26, 1.6, z), NEG_Y); }
+  for (const z of [-8, 8]) { R.F('p3', 12, 'J03', 9, hp, V3(26, 7.6, z), NEG_Y); R.F('y3', 0, 'J03', 9, hp, V3(26, 1.6, z), NEG_Y); }
   R.hornTipA = at(new THREE.Object3D(), 26, 4.6, -8); R.hornTipB = at(new THREE.Object3D(), 26, 4.6, 8); hp.add(R.hornTipA, R.hornTipB);
   R.anchors.srv = at(new THREE.Object3D(), SX - 11.6, 26, 3); gS.add(R.anchors.srv);
 
@@ -437,7 +438,7 @@ function buildRover() {
   const maH = [RB(-28, -22, -15.4, -9.4), RB(-18, -14, -15.4, -9.4), CI(TIP[0], TIP[1], 1.7)];
   for (const side of sides) {
     b.inst = side < 0 ? 0 : 1;
-    const k = grp('manga' + side, [0, -6, 70 * side], 8, root, V3(KP[0], 0, KP[1] * side)); k.scale.z = side;
+    const k = grp('manga' + side, [0, -6, 70 * side], 9, root, V3(KP[0], 0, KP[1] * side)); k.scale.z = side;
     const ex = side > 0;
     M(k, 'manga', 'Manga · placa do motor · camada encostada no TT', 'MV1', 'xy', -12.4, mv, mvH, { exp: ex, qty: 2 });
     M(k, 'manga', 'Manga · placa do motor · camada das porcas cativas', 'MV2', 'xy', -15.4, mv, mvN, { exp: ex, qty: 2 });
@@ -447,10 +448,10 @@ function buildRover() {
     M(k, 'manga', 'Pino de MDF Ø8 (pivô da manga)', 'MP', 'xz', 16, CI(0, 0, 4), [], { exp: ex, qty: 4 });
     M(k, 'manga', 'Pino de MDF Ø8 (pivô da manga)', 'MP', 'xz', 97.7, CI(0, 0, 4), [], { exp: false });
     buildTT(b, R, k, V3(0, 34, 0), -Math.PI / 2, side < 0 ? 'mFL' : 'mFR');
-    for (const x of [-6.5, 6.5]) { R.F('p3', 25, 'J02', 8, k, V3(x, 56, 9.4), V3(0, 0, -1)); R.F('n3', 0, 'J02', 8, k, V3(x, 56, -12.4), V3(0, 0, -1)); }
-    R.F('p3', 16, 'J04', 8, k, V3(TIP[0], 56.5, TIP[1]), NEG_Y); R.F('y3', 0, 'J04', 8, k, V3(TIP[0], 47.5, TIP[1]), NEG_Y);
+    for (const x of [-6.5, 6.5]) { R.F('p3', 25, 'J02', 9, k, V3(x, 56, 9.4), V3(0, 0, -1)); R.F('n3', 0, 'J02', 9, k, V3(x, 56, -12.4), V3(0, 0, -1)); }
+    R.F('p3', 16, 'J04', 9, k, V3(TIP[0], 56.5, TIP[1]), NEG_Y); R.F('y3', 0, 'J04', 9, k, V3(TIP[0], 47.5, TIP[1]), NEG_Y);
     const tip = at(new THREE.Object3D(), TIP[0], 53.5, TIP[1]); k.add(tip);
-    const gw = grp('rodaF' + side, [0, 0, 40], 12, k, V3(0, 34, 88 - KP[1]));
+    const gw = grp('rodaF' + side, [0, 0, 40], 13, k, V3(0, 34, 88 - KP[1]));
     R.spinners.push(buildWheel(b, gw, V3()));
     knuckles[side] = k; armTips[side] = tip;
   }
@@ -459,7 +460,7 @@ function buildRover() {
   R.link = { K: KP[0], Kz: KP[1], tip: TIP, S: SX + 5.5, h: 26, e: 8 };
 
   /* ---- 6. barras de direção (MDF, comprimento fixo) ---- */
-  const gT = new THREE.Group(); root.add(gT); Object.assign(gT.userData, { step: 8 }); R.tieGroup = gT; R.ties = [];
+  const gT = new THREE.Group(); root.add(gT); Object.assign(gT.userData, { step: 9 }); R.tieGroup = gT; R.ties = [];
   const LR = KP[1] + TIP[1] - 8;
   const rodO = [...arcP(LR, 0, 4, -90, 90, 10), ...arcP(0, 0, 4, 90, 270, 10)];
   for (let i = 0; i < 2; i++) R.ties.push({ rod: M(gT, 'braco', `Barra de direção (MDF, ${fmt(LR, 1)} mm entre furos)`, 'BD', 'xz', 0, rodO, [CI(0, 0, 1.7), CI(LR, 0, 1.7)], { exp: i === 0, qty: 2 }) });
@@ -492,19 +493,19 @@ function buildRover() {
   M(gRear, 'carroceria', 'Painel traseiro', 'TR', 'zy', -101, rpT, rpH);
   for (const z of [-30, 30]) at(b.mesh(G.rbox(1.2, 6, 9, .4), MAT.tail, 'carroceria', 'Lanterna traseira (adesivo)', gRear, false), -101.6, 64, z);
 
-  const gDk = grp('bandeja', [0, 64, 0], 6);
+  const gDk = grp('bandeja', [0, 64, 0], 7);
   const shT = tabbed([[-2, -WZ0], [101, -WZ0], [101, WZ0], [-2, WZ0]], { 0: [16, 56, 92].map(x => [x, TAB(12)]), 2: [92, 56, 16].map(x => [x, TAB(12)]) });
   const PI0 = [62, -17], piHw = [[-29, -11.5], [29, -11.5], [-29, 11.5], [29, 11.5]].map(([x, z]) => [PI0[0] - x, PI0[1] - z]);
   const DR0 = [20.5, 15.5];                                                                  // centro da L9110S
   const shH = [...piHw.map(([x, z]) => CI(x, z, 1.35)), RB(38, 52, 6, 14), RB(4, 14, -30, -18), RB(-1, 7, 18, 30),
     ...[17.5, 27.5].flatMap(x => [RB(x - 1.5, x + 1.5, DR0[1] - 13.4, DR0[1] - 11.8), RB(x - 1.5, x + 1.5, DR0[1] + 11.8, DR0[1] + 13.4)])];
   M(gDk, 'suportes', 'Prateleira eletrônica', 'PR', 'xz', 61, shT, shH);
-  piHw.forEach(([x, z], i) => { M(gDk, 'suportes', 'Espaçador do Pi (anel de MDF)', 'ES', 'xz', 64, CI(x, z, 3.2), [CI(x, z, 1.35)], { exp: i === 0, qty: 4 }); R.F('p25', 10, 'J07', 7, gDk, V3(x, 68.4, z), NEG_Y); R.F('n25', 0, 'J07', 7, gDk, V3(x, 61, z), NEG_Y); });
-  const gPT = grp('bandejaPB', [0, 52, 0], 6);
+  piHw.forEach(([x, z], i) => { M(gDk, 'suportes', 'Espaçador do Pi (anel de MDF)', 'ES', 'xz', 64, CI(x, z, 3.2), [CI(x, z, 1.35)], { exp: i === 0, qty: 4 }); R.F('p25', 10, 'J07', 8, gDk, V3(x, 68.4, z), NEG_Y); R.F('n25', 0, 'J07', 8, gDk, V3(x, 61, z), NEG_Y); });
+  const gPT = grp('bandejaPB', [0, 52, 0], 7);
   M(gPT, 'suportes', 'Bandeja do power bank', 'BP', 'xz', 64, tabbed([[-96, -WZ0], [-4, -WZ0], [-4, WZ0], [-96, WZ0]], { 0: [-80, -30].map(x => [x, TAB(12)]), 2: [-30, -80].map(x => [x, TAB(12)]) }), [RB(-70, -40, -14, 14)]);
 
   /* ---- 8. Raspberry Pi Zero 2 W (girado: portas viradas para o centro, cartão para a frente) ---- */
-  const gPi = grp('pi', [0, 96, 0], 7, root, V3(PI0[0], 67, PI0[1])); gPi.rotation.y = Math.PI;
+  const gPi = grp('pi', [0, 96, 0], 8, root, V3(PI0[0], 67, PI0[1])); gPi.rotation.y = Math.PI;
   const piH = [[-29, -11.5], [29, -11.5], [-29, 11.5], [29, 11.5]];
   const piTex = textTex(650, 300, (x, W, H) => {
     x.fillStyle = '#176b38'; x.fillRect(0, 0, W, H); x.strokeStyle = 'rgba(200,170,80,.55)'; x.lineWidth = 2;
@@ -531,7 +532,7 @@ function buildRover() {
   R.piHdr = k => { const v = V3(-24.13 + (k >> 1) * 2.54, 7.4, k % 2 ? 12.77 : 10.23); return v.applyAxisAngle(Y_AX, Math.PI).add(V3(PI0[0], 67, PI0[1])); };
 
   /* ---- 9. ponte H L9110S (2 canais) presa com 2 abraçadeiras ---- */
-  const gL = grp('driver', [0, 96, 0], 7, root, V3(DR0[0], 64, DR0[1]));
+  const gL = grp('driver', [0, 96, 0], 8, root, V3(DR0[0], 64, DR0[1]));
   b.mesh(plate(rr(-14.5, 14.5, -11.5, 11.5, 1.2), [], 1.6), MAT.red, 'driver', 'Placa (PCB)', gL);
   const dTex = textTex(290, 230, (x, W, H) => { x.fillStyle = '#b1211b'; x.fillRect(0, 0, W, H); x.fillStyle = '#f2ece4'; x.textAlign = 'center'; x.font = '700 30px Barlow, Arial'; x.fillText('L9110S', 145, 120); x.font = '600 16px Barlow, Arial'; x.fillText('MOTOR-A', 70, 40); x.fillText('MOTOR-B', 70, 205); x.fillText('B-IA B-IB GND VCC A-IA A-IB', 160, 168); });
   at(b.mesh(new THREE.PlaneGeometry(29, 23).rotateX(-Math.PI / 2), decalMat(dTex, false), 'driver', 'Placa (PCB)', gL, false), 0, 1.62, 0);
@@ -549,7 +550,7 @@ function buildRover() {
   R.dIn = i => V3(DR0[0] + 12.5, 64 + 8.6, DR0[1] - 6.35 + i * 2.54);   // 0 B-IA · 1 B-IB · 2 GND · 3 VCC · 4 A-IA · 5 A-IB
 
   /* ---- 10. power bank + 2 travessas que entram pelas fendas das paredes ---- */
-  const gPB = grp('powerbank', [0, 70, 0], 9);
+  const gPB = grp('powerbank', [0, 70, 0], 10);
   at(b.mesh(G.rbox(97, 17, 67, 4, 4), MAT.pb, 'powerbank', 'Corpo do power bank', gPB), -49, 75.5, 0);
   const pbl = label(440, 760, [['KAIDI', '800 124px "Barlow Condensed", Arial', 300], ['KD-998', '700 78px "Barlow Condensed", Arial', 400], ['10.000 mAh', '600 58px "Barlow", Arial', 490]], '#141416');
   at(b.mesh(new THREE.PlaneGeometry(44, 76).rotateX(-Math.PI / 2).rotateY(-Math.PI / 2), decalMat(pbl, false), 'powerbank', 'Etiqueta KD-998', gPB, false), -49, 84.06, 0);
@@ -560,7 +561,7 @@ function buildRover() {
   R.anchors.pbC = at(new THREE.Object3D(), .6, 75.5, -10); R.anchors.pbA = at(new THREE.Object3D(), .6, 75.5, 8); gPB.add(R.anchors.pbC, R.anchors.pbA);
 
   /* ---- 11. teto com asas (seguram os pinos de cima das mangas) e antena ---- */
-  const gRoof = grp('teto', [0, 130, 0], 10);
+  const gRoof = grp('teto', [0, 130, 0], 11);
   const wing = s => s < 0
     ? [[70, -40.5], [70, -KP[1]], ...arcP(KP[0], -KP[1], 12.5, 180, 360, 18).slice(1, -1), [95, -KP[1]], [95, -40.5]]
     : [[95, 40.5], [95, KP[1]], ...arcP(KP[0], KP[1], 12.5, 0, 180, 18).slice(1, -1), [70, KP[1]], [70, 40.5]];
@@ -573,24 +574,24 @@ function buildRover() {
   }
   for (let c = 0; c < 6; c++) for (const z of [-22, 0, 22]) roofH.push(RB(-88 + 16 * c, -78 + 16 * c, z - 5, z + 5));
   M(gRoof, 'carroceria', 'Teto / rack (as asas seguram os pinos das mangas)', 'TE', 'xz', 97.8, roofP, roofH);
-  for (const s of sides) for (const x of [-92, 60]) { R.F('p3', 16, 'J06', 10, gRoof, V3(x, 100.8, 36 * s), NEG_Y); R.F('n3', 0, 'J06', 10, R.wallG[s], V3(x, 90.6, 36 * s), NEG_Y); }
-  const gAnt = grp('antena', [-40, 150, 0], 10);
+  for (const s of sides) for (const x of [-92, 60]) { R.F('p3', 16, 'J06', 11, gRoof, V3(x, 100.8, 36 * s), NEG_Y); R.F('n3', 0, 'J06', 11, R.wallG[s], V3(x, 90.6, 36 * s), NEG_Y); }
+  const gAnt = grp('antena', [-40, 150, 0], 11);
   M(gAnt, 'carroceria', 'Antena (MDF, só estética)', 'AN', 'zy', -97, tabbed([[28, 100.8], [34, 100.8], [34, 150], ...arcP(31, 150, 3, 0, 180, 8).slice(1, -1), [28, 150]], { 0: [[31, TAB(4)]] }));
 
   /* ---- 12. para-choque (2 camadas) ---- */
-  const gBump = grp('parachoque', [60, 0, 0], 10);
+  const gBump = grp('parachoque', [60, 0, 0], 11);
   const bpO = [[-36, 10], [36, 10], [36, 44], [27, 44], [27, 54], [19, 54], [19, 44], [-19, 44], [-19, 54], [-27, 54], [-27, 44], [-36, 44]];
   const bpH = [RB(-24, -12, 16, 22), RB(12, 24, 16, 22), RB(-16, 16, 27, 29.5), RB(-16, 16, 32, 34.5), RB(-16, 16, 37, 39.5)];
   [105, 108].forEach((x, i) => M(gBump, 'carroceria', 'Para-choque (2 camadas)', 'PC', 'zy', x, bpO, bpH, { exp: i === 0, qty: 2 }));
 
   /* ---- 13. webcam no teto: bolsão + ponte em U ---- */
   const CL = 98, CP = 100.8, CX = 67;
-  const gBer = grp('bercoCam', [30, 60, 0], 11);
+  const gBer = grp('bercoCam', [30, 60, 0], 12);
   M(gBer, 'suportes', 'Bolsão da base da webcam (colado no teto)', 'WC', 'xz', CP, RB(58.6, 100.1, -30, 30), [RB(61.6, 97.1, -27, 27)]);
-  const gPr = grp('presilhaCam', [40, 236, 0], 11);
+  const gPr = grp('presilhaCam', [40, 236, 0], 12);
   const ubO = tabbed([[-26, CP], [-19.8, CP], [-19.8, CP + 16.2], [19.8, CP + 16.2], [19.8, CP], [26, CP], [26, CP + 20.2], [-26, CP + 20.2]], { 0: [[-22.9, TAB(3.2)]], 4: [[22.9, TAB(3.2)]] });
   M(gPr, 'suportes', 'Ponte da webcam (prende a base dobrada)', 'WP', 'zy', CX - 1.5, ubO);
-  const gCam = grp('webcam', [56, 190, 0], 11), yL = CP + 37.7;
+  const gCam = grp('webcam', [56, 190, 0], 12), yL = CP + 37.7;
   at(b.mesh(G.rbox(34.3, 11.8, 39.3, 2.4), MAT.cam, 'webcam', 'Base dobrável (clipe de monitor fechado)', gCam), CL - 18.65, CP + 5.9, 0);
   at(b.mesh(G.rbox(38.5, 4.8, 39.3, 1.4), MAT.cam, 'webcam', 'Base dobrável (clipe de monitor fechado)', gCam), CL - 20.75, CP + 14.2, 0);
   at(b.mesh(G.cylZ(4.8, 39.3, 28), MAT.cam, 'webcam', 'Articulação do clipe', gCam), CL - 38.9, CP + 10.9, 0);
@@ -610,6 +611,9 @@ function buildRover() {
   /* ---- kit de manobras (opcional, peças genéricas) ---- */
   R.kit = null;   // versão leve: sem o kit de CO2 (buildKit fica guardado, sem uso)
 
+  /* ---- sucção (fan car): turbina no meio do chassi, saia por baixo, bateria própria no teto ---- */
+  buildSuccao(b, R, grp, M, label);
+
   /* ---- peça de teste de encaixe (só nos arquivos de corte) ---- */
   const comb = [[0, 0], [70, 0], [70, 22]];
   [3.3, 3.2, 3.1, 3.0, 2.9, 2.8].forEach((w, i) => { const x = 62 - i * 11; comb.push([x + w / 2, 22], [x + w / 2, 12], [x - w / 2, 12], [x - w / 2, 22]); });
@@ -624,6 +628,176 @@ function buildRover() {
   buildFasteners(R);
   buildWires(b, R);
   return R;
+}
+
+/* ============================ SUCÇÃO (fan car) ============================
+   Turbina de 2 estágios contrarrotativos num pedaço de cano de esgoto Ø50, em pé sobre o furo Ø31 do chassi:
+   2 motores do DJI Neo 2 com hélices de 45 mm, presos em cruzetas de MDF. Uma saia de EVA em volta do chassi
+   e de 2 asas de MDF fecha a área de baixo; a turbina tira o ar dali e o rover é puxado contra o chão.
+   As peças novas de MDF (SM e SA) vão numa chapinha separada (R.cut2): a chapa 1 não muda. */
+const SUC = { x: -19, y0: 22, h: 34, ri: 23.4, ro: 25, notch: 10.5 };
+// contorno da saia (chassi + 2 asas), em (x, z), no sentido anti-horário
+const SKIRT = [[104, 40.5], [40, 40.5], [40, 80], [32, 88], [-32, 88], [-40, 80], [-40, 40.5], [-104, 40.5],
+  [-104, -40.5], [-40, -40.5], [-40, -80], [-32, -88], [32, -88], [40, -80], [40, -40.5], [104, -40.5]];
+// cruzeta: cubo + 3 braços que encostam por dentro do cano
+function spiderO(rh = 9, ra = 23.2, w = 5, arms = [90, 210, 330]) {
+  const dh = Math.asin(w / 2 / rh) / DEG, da = Math.asin(w / 2 / ra) / DEG, p = [];
+  arms.forEach((a, i) => {
+    const nx = i === arms.length - 1 ? arms[0] + 360 : arms[i + 1];
+    p.push(...arcP(0, 0, ra, a - da, a + da, 4), ...arcP(0, 0, rh, a + dh, nx - dh, 14));
+  });
+  return p;
+}
+// rasgo arredondado radial (ângulo a, de r0 a r1, largura w)
+function slotP(a, r0, r1, w, n = 6) {
+  const c = Math.cos(a * DEG), s = Math.sin(a * DEG), h = w / 2, p = [];
+  for (const [rc, a0] of [[r1 - h, -90], [r0 + h, 90]]) for (let i = 0; i <= n; i++) { const t = (a0 + 180 * i / n) * DEG, u = rc + h * Math.cos(t), v = h * Math.sin(t); p.push([u * c - v * s, u * s + v * c]); }
+  return p;
+}
+function buildSuccao(b, R, grp, M, label) {
+  const S = { rot: [], blur: [], ang: 0 }; R.suc = S;
+  const X = SUC.x, Y0 = SUC.y0, Y1 = SUC.y0 + SUC.h, sides = [-1, 1];
+  const sg = (name, ex, step, pos, exA) => { const g = grp(name, ex, step, R.root, pos); if (exA) g.userData.exA = V3(...exA); return g; };
+  const DROP = [0, 92, 0];   // na montagem a turbina pronta desce inteira por cima, antes da prateleira e da bandeja
+
+  /* ---- passo 6 · cano Ø50 colado no chassi em cima do furo Ø31 · entalhe de 10 × 10,5 mm na boca, virado para trás:
+     encaixa na porca do pivô da travessa (acima da 2ª hélice o ar já saiu, então o entalhe não rouba sucção) ---- */
+  const gC = sg('cano', [-180, 0, 0], 6, V3(X, 0, 0), DROP), NY = SUC.notch, csub = 'Cano de esgoto Ø50 (34 mm, entalhe atrás para a porca do pivô)';
+  at(b.mesh(tube(SUC.ri, SUC.ro, Y1 - NY - Y0, 56), MAT.white, 'cano', csub, gC), 0, (Y0 + Y1 - NY) / 2, 0);
+  const cSh = new THREE.Shape(v2([...arcP(0, 0, SUC.ro, 192.5, 527.5, 52), ...arcP(0, 0, SUC.ri, 527.5, 192.5, 52)]));
+  const cG = new THREE.ExtrudeGeometry(cSh, { depth: NY, bevelEnabled: false, curveSegments: 4 }); cG.rotateX(Math.PI / 2).translate(0, NY, 0); cG.deleteAttribute('uv');
+  at(b.mesh(cG, MAT.white, 'cano', csub, gC), 0, Y1 - NY, 0);
+  at(b.mesh(tube(SUC.ro, 26.6, 1.4, 56), MAT.glue, 'cano', 'Cola quente em volta da base (sem frestas)', gC, false), 0, Y0 + .7, 0);
+
+  /* ---- cruzetas de MDF (chapa 2): a de baixo apoia no chassi, a de cima fica rente à boca do cano ---- */
+  const smO = spiderO(), smH = [CI(0, 0, 2.6), ...[30, 150, 270].map(a => slotP(a, 3.6, 7.4, 1.8))];
+  const gS1 = sg('cruzeta1', [-180, 40, 0], 6, V3(X, 0, 0), DROP), gS2 = sg('cruzeta2', [-180, 80, 0], 6, V3(X, 0, 0), DROP);
+  M(gS1, 'cruzetas', 'Cruzeta do motor de baixo (MDF, chapa 2)', 'SM', 'xz', Y0, smO, smH, { sheet: 2, qty: 2, name: 'Cruzeta do motor (cubo + 3 braços que colam no cano)' });
+  M(gS2, 'cruzetas', 'Cruzeta do motor de cima (MDF, chapa 2)', 'SM', 'xz', Y1 - TH, smO, smH, { exp: false });
+
+  /* ---- motores do Neo 2 (Ø14 × 8): o de baixo em pé, o de cima pendurado; o sino gira junto com a hélice ---- */
+  const motor = (name, ex, y, flip, which) => {
+    const g = sg(name, ex, 6, V3(X, y, 0), DROP), s = flip ? -1 : 1, sub = `Motor do DJI Neo 2 (${which})`;
+    at(b.mesh(G.cylY(7, 1.6, 28), MAT.alu, 'turbina', sub + ' · base', g), 0, s * .8, 0);
+    const bell = new THREE.Group(); g.add(bell);
+    at(b.mesh(G.cylY(6.8, 6, 28), MAT.dark, 'turbina', sub + ' · sino (gira)', bell), 0, s * 4.6, 0);
+    at(b.mesh(G.cylY(5.4, .4, 24), MAT.steel, 'turbina', sub + ' · sino (gira)', bell), 0, s * 7.8, 0);
+    at(b.mesh(G.cylY(.75, 4, 10), MAT.shaft, 'turbina', sub + ' · eixo Ø1,5', bell), 0, s * 10, 0);
+    S.rot.push({ g: bell, dir: flip ? 1 : -1 });   // visto de cima: o de baixo gira no sentido horário, o de cima no anti-horário
+    return g;
+  };
+  motor('motorSuc1', [-180, 48, 0], Y0 + TH, false, 'de baixo');
+  motor('motorSuc2', [-180, 72, 0], Y1 - TH, true, 'de cima');
+
+  /* ---- hélices de 45 mm, 3 pás: CCW embaixo e CW em cima, as duas com a parte escrita para baixo: jogam o ar para cima ---- */
+  // pá: borda de ataque mais baixa que a de fuga, então empurra o ar para cima; m = −1 dá a pá espelhada (giro ao contrário)
+  const blade = m => {
+    const sh = new THREE.Shape(v2([[2.5, 2.4], [6, 3.9], [10, 4.5], [14, 4.4], [18, 3.6], [21, 2.4], [22.4, .8], [22.4, -.6], [21, -2], [18, -3], [14, -3.5], [10, -3.4], [6, -2.8], [2.5, -2.1]].map(([u, v]) => [u, m * v])));
+    const g = new THREE.ExtrudeGeometry(sh, { depth: .7, bevelEnabled: false, curveSegments: 4 }); g.translate(0, 0, -.35); g.rotateX(Math.PI / 2); g.rotateX(m * 22 * DEG); g.deleteAttribute('uv'); return g;
+  };
+  const prop = (name, ex, y, dir) => {
+    const g = sg(name, ex, 6, V3(X, y, 0), DROP), r = new THREE.Group(); g.add(r);
+    const sub = `Hélice de 45 mm, 3 pás (${dir < 0 ? 'CCW, embaixo' : 'CW, em cima'}) · escrita para baixo`;
+    b.mesh(tube(.8, 3, 4, 20), MAT.prop, 'helices', sub, r);
+    const base = blade(dir > 0 ? -1 : 1);
+    for (let i = 0; i < 3; i++) b.mesh(base.clone().rotateY(i * 2 * Math.PI / 3), MAT.prop, 'helices', sub, r);
+    const disc = new THREE.Mesh(new THREE.RingGeometry(3.2, 22.4, 48).rotateX(-Math.PI / 2),
+      new THREE.MeshBasicMaterial({ color: 0xffc89a, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide, clippingPlanes: CLIP }));
+    disc.renderOrder = 5; g.add(disc); b.reg('helices').meshes.push(disc); S.blur.push(disc);
+    S.rot.push({ g: r, dir });
+    return g;
+  };
+  prop('heliceSuc1', [-180, 56, 0], Y0 + TH + 8 + 2, -1);
+  prop('heliceSuc2', [-180, 64, 0], Y1 - TH - 8 - 2, 1);
+
+  /* ---- 2 ESCs de pé, colados por dentro das paredes ao lado do servo (fios do motor embaixo, bateria e sinal em cima) ---- */
+  const escTex = label(240, 500, [['ESC', '800 120px "Barlow Condensed", Arial', 190], ['12 A', '700 96px "Barlow Condensed", Arial', 310]], '#2a59c9');
+  for (const s of sides) {
+    const g = sg(s < 0 ? 'escE' : 'escD', [0, 10, 46 * s], 6, V3(20, 39.5, 31.5 * s), [0, 70, 0]);
+    b.mesh(G.rbox(12, 25, 5, 1.8), MAT.esc, 'esc', `ESC 12 A (BLHeli_S) · motor ${s < 0 ? 'de baixo' : 'de cima'}`, g);
+    const d = at(b.mesh(new THREE.PlaneGeometry(9, 19), decalMat(escTex, false), 'esc', `ESC 12 A (BLHeli_S) · motor ${s < 0 ? 'de baixo' : 'de cima'}`, g, false), 0, 0, -s * 2.55);
+    if (s > 0) d.rotation.y = Math.PI;
+  }
+
+  /* ---- passo 14 · saia: 2 asas de MDF (chapa 2) coladas embaixo do chassi + tiras de EVA até 1 mm do chão ---- */
+  const gSk = sg('saia', [0, -46, 0], 14, null, [0, -72, 0]);
+  const saO = [[-40, 28], [40, 28], [40, 80], [32, 88], [-32, 88], [-40, 80]];
+  for (const s of sides) M(gSk, 'saia', 'Asa da saia (MDF, colada embaixo do chassi)', 'SA', 'xz', 13, s > 0 ? saO : saO.map(([x, z]) => [x, -z]).reverse(), [], { sheet: 2, qty: 2, exp: s > 0 });
+  const ar = sArea(SKIRT) > 0 ? 1 : -1;
+  for (let i = 0; i < SKIRT.length; i++) {
+    const [x0, z0] = SKIRT[i], [x1, z1] = SKIRT[(i + 1) % SKIRT.length], L = Math.hypot(x1 - x0, z1 - z0);
+    const top = Math.max(Math.abs(z0), Math.abs(z1)) > 41 ? 13 : 16, nx = -(z1 - z0) / L * ar, nz = (x1 - x0) / L * ar;   // normal para dentro
+    const w = b.mesh(G.box(L + .6, top - 1, 2), MAT.eva, 'saia', 'Saia de EVA 2 mm (fica a 1 mm do chão)', gSk);
+    w.position.set((x0 + x1) / 2 + nx, (top + 1) / 2, (z0 + z1) / 2 + nz); w.rotation.y = -Math.atan2(z1 - z0, x1 - x0);
+  }
+
+  /* ---- bateria LiPo 2S só da turbina, no teto, presa com 2 fitas de velcro pelos rasgos do rack ---- */
+  const gB = sg('lipoSuc', [0, 172, 0], 14, null, [0, 70, 0]);
+  at(b.mesh(G.rbox(58, 13, 30, 2.4), MAT.lipo, 'lipo', 'Bateria LiPo 2S 7,4 V 850 mAh (só da turbina)', gB), -44, 107.3, 0);
+  const lpTex = label(580, 300, [['LiPo 2S · 7,4 V', '800 70px "Barlow Condensed", Arial', 105], ['850 mAh · 30C', '700 60px "Barlow Condensed", Arial', 200]], '#1d3f8a');
+  at(b.mesh(new THREE.PlaneGeometry(50, 24).rotateX(-Math.PI / 2).rotateY(Math.PI), decalMat(lpTex, false), 'lipo', 'Bateria LiPo 2S 7,4 V 850 mAh (só da turbina)', gB, false), -44, 113.86, 0);
+  for (const x of [-51, -35]) {
+    const sub = 'Fita de velcro (passa pelos rasgos do teto)';
+    at(b.mesh(G.box(9, 1.2, 37.2), MAT.dark, 'lipo', sub, gB), x, 114.4, 0);
+    at(b.mesh(G.box(9, 1.2, 37.2), MAT.dark, 'lipo', sub, gB), x, 97.2, 0);
+    for (const s of sides) at(b.mesh(G.box(9, 18.4, 1.2), MAT.dark, 'lipo', sub, gB), x, 105.8, 18 * s);
+  }
+  at(b.mesh(G.rbox(8, 5.5, 16, .8), MAT.tt, 'lipo', 'Conector XT30 (desligue aqui: turbina sem energia)', gB), -7, 103.55, 9);
+
+  /* ---- ar: sai pelas janelas das paredes e entra por baixo da saia ---- */
+  const dot = textTex(64, 64, (x, w, h) => { const g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.4, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, w, h); });
+  const air = (n, size) => {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3)); g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+    const p = new THREE.Points(g, new THREE.PointsMaterial({ size, map: dot, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true }));
+    p.frustumCulled = false; p.renderOrder = 8; p.visible = false; R.root.add(p);
+    return { p, n, t: new Float32Array(n).fill(9), life: new Float32Array(n).fill(1), o: new Float32Array(n * 3), v: new Float32Array(n * 3) };
+  };
+  S.out = air(150, 6.5); S.in = air(110, 4.2);
+  let per = 0; S.seg = SKIRT.map((a, i) => { const c = SKIRT[(i + 1) % SKIRT.length], L = Math.hypot(c[0] - a[0], c[1] - a[1]); per += L; return { a, c, L, nx: (c[1] - a[1]) / L * ar, nz: -(c[0] - a[0]) / L * ar }; });
+  S.per = per;
+}
+// gira os rotores, acende o borrão das hélices e move o ar; k = nível suave da turbina (0 – 1)
+function updateSuccao(R, k, dt, show) {
+  const S = R.suc; if (!S) return;
+  S.ang += dt * (4 + 22 * k) * (k > .004 ? 1 : 0);
+  for (const r of S.rot) r.g.rotation.y = S.ang * r.dir;
+  for (const d of S.blur) d.material.opacity = .34 * Math.min(1, k * 1.8);
+  const rnd = (a, c) => a + Math.random() * (c - a);
+  for (const A of [S.out, S.in]) {
+    A.p.visible = show && k > .015; if (!A.p.visible) { A.t.fill(9); continue; }
+    const P = A.p.geometry.attributes.position.array, C = A.p.geometry.attributes.color.array, out = A === S.out;
+    for (let i = 0; i < A.n; i++) {
+      A.t[i] += dt;
+      if (A.t[i] < 0) continue;                                     // esperando para nascer
+      if (A.t[i] > A.life[i]) {
+        if (out) {   // janelas RB(-45, -6, 28, 56) das paredes
+          const s = i & 1 ? 1 : -1;
+          A.o.set([rnd(-42, -9), rnd(30, 54), s * 38.5], 3 * i);
+          A.v.set([rnd(-35, 35), rnd(-8, 40), s * rnd(150, 260) * (.45 + .55 * k)], 3 * i);
+          A.life[i] = rnd(.45, .85);
+        } else {     // vem do chão em volta e some embaixo da saia
+          let u = Math.random() * S.per, sg = S.seg[0]; for (const q of S.seg) { if (u <= q.L) { sg = q; break; } u -= q.L; }
+          const f = u / sg.L, d = rnd(26, 46), sp = rnd(55, 95) * (.5 + .5 * k);
+          A.o.set([sg.a[0] + (sg.c[0] - sg.a[0]) * f + sg.nx * d, rnd(.6, 2.6), sg.a[1] + (sg.c[1] - sg.a[1]) * f + sg.nz * d], 3 * i);
+          A.v.set([-sg.nx * sp, 0, -sg.nz * sp], 3 * i);
+          A.life[i] = d / sp;
+        }
+        A.t[i] = -Math.random() * (1 - k) * 1.2;                   // menos ar com a turbina fraca
+        C[3 * i] = C[3 * i + 1] = C[3 * i + 2] = 0; continue;
+      }
+      const t = A.t[i], L = A.life[i], e = t / L;
+      P[3 * i] = A.o[3 * i] + A.v[3 * i] * t; P[3 * i + 1] = A.o[3 * i + 1] + A.v[3 * i + 1] * t; P[3 * i + 2] = A.o[3 * i + 2] + A.v[3 * i + 2] * t;
+      const a = (out ? Math.sin(Math.PI * Math.min(1, e)) * .5 : Math.min(1, t / .12) * Math.min(1, (L - t) / .1) * .42) * (.35 + .65 * k);
+      C[3 * i] = .82 * a; C[3 * i + 1] = .9 * a; C[3 * i + 2] = a;
+    }
+    A.p.geometry.attributes.position.needsUpdate = true; A.p.geometry.attributes.color.needsUpdate = true;
+  }
+}
+// visibilidade que depende do passo da montagem: barras de direção e cada grupo de fios
+function stepVis(R, k, on = true) {
+  if (R.tieGroup) R.tieGroup.visible = !on || k >= R.tieGroup.userData.step;
+  for (const g of Object.values(R.wireG || {})) g.visible = on ? k >= g.userData.step : true;
 }
 
 /* ============================ KIT DE MANOBRAS (opcional) ============================
@@ -929,8 +1103,9 @@ function steerPose(R, s) {
 
 /* ---------- fiação ---------- */
 function buildWires(b, R) {
-  const gW = new THREE.Group(); R.root.add(gW); R.wireGroup = gW;
-  const W = (pts, r, mat, dyn = false) => R.wires.push({ pts, r, mat, dyn, mesh: null });
+  const gW = new THREE.Group(); gW.userData.step = 13; R.root.add(gW); R.wireGroup = gW; R.wireG = { 13: gW };
+  const WG = st => R.wireG[st] || (R.wireG[st] = (() => { const g = new THREE.Group(); g.userData.step = st; R.root.add(g); return g; })());
+  const W = (pts, r, mat, dyn = false, step = 13, sub = 'Cabo') => R.wires.push({ pts, r, mat, dyn, sub, g: WG(step), mesh: null });
   // energia: USB-C do power bank → Pi · USB-A → VCC/GND da L9110S (motores e servo)
   W(['pbC', [6, 74, -11], [16, 72, -8], [30, 70.5, -3], 'piPWR'], 1.5, MAT.wK);
   W(['pbA', [7, 76, 9], [22, 77, 12], [31, 75, 15], R.dIn(3)], .9, MAT.wR);
@@ -949,6 +1124,33 @@ function buildWires(b, R) {
     W([(side < 0 ? 'mFL' : 'mFR') + pol, [82.5 + (o ? -3 : 3), 93, side * 58], [80, 90, side * 44], [80, 82, side * 36], [74, 76, side * 30], [40, 74, z], [12, 72, side * (14 + o)], term], .8, m, true);
     W([(side < 0 ? 'mRL' : 'mRR') + pol, [-24, 36 + o, side * 54], [-21, 40, side * 44], [-20, 42, side * 36], [-14, 48, side * 28], [-4, 58, z], [8, 66, side * (20 + o)], [4, 70, side * (6 + o)], term], .8, m, true);
   }
+  if (!R.suc) return;
+  /* ---- sucção · passo 6: 3 fios de cada motor até o ESC (passam por um furo Ø4 no cano, vedado com cola quente) ---- */
+  const X = SUC.x, P = (r, a, y) => [X + r * Math.cos(a * DEG), y, r * Math.sin(a * DEG)];
+  const tri = [[MAT.wK, -1], [MAT.wR, 0], [MAT.wY, 1]];   // trocar 2 deles inverte o giro
+  tri.forEach(([m, o]) => W([P(6.9, -40 + 13 * o, 26.1), P(20.5, -40 + 3 * o, 27.4), P(25.8, -40 + 2.2 * o, 28), [7 + .5 * o, 26.6, -24.5], [15 + o, 24.6, -30], [20 + 3 * o, 24.8, -31.5], [20 + 3 * o, 27, -31.5]],
+    .45, m, false, 6, 'Fios do motor de baixo → ESC da esquerda'));
+  tri.forEach(([m, o]) => W([P(6.9, 40 + 13 * o, 52.2), P(20.5, 40 + 3 * o, 51.6), P(25.8, 40 + 2.2 * o, 51), [4.5 + .6 * o, 42, 24 + .3 * o], [8 + .6 * o, 29, 27], [15 + o, 24.6, 30], [20 + 3 * o, 24.8, 31.5], [20 + 3 * o, 27, 31.5]],
+    .45, m, false, 6, 'Fios do motor de cima → ESC da direita'));
+  /* ---- passo 14: bateria → XT30 no teto → desce na frente do power bank → um ramo para cada ESC; sinais no GPIO23/24 ---- */
+  for (const [m, o] of [[MAT.wR, -1], [MAT.wK, 1]]) {
+    const d = 1.25 * o;
+    W([[-15, 104.4, d], [-12, 104.2, d * .8], [-9.5, 103.6, 2.5 + d * .4], [-7 + d, 103.6, 1.2]], .8, m, false, 14, 'Cabo da bateria → XT30');
+    W([[-7 + d, 103.6, 16.8], [-6 + d, 102.6, 20.5], [-3 + d * .6, 98.6, 22], [.3, 92, 22 + d], [1.5, 75, 22 + d], [2, 67.6, 22 + d], [3.6, 62.5, 24.5 + d * .8], [12, 57.4, 29.2 + d * .6], [18.6 + d, 53.6, 31.5], [18.6 + d, 52, 31.5]],
+      .8, m, false, 14, 'Bateria → ESC da direita');
+    W([[2, 67.6, 22 + d], [2.2, 66.4 + d * .5, 6], [2.6, 66.4 + d * .5, -14], [8.6 + d * .4, 62.5, -24.2], [12, 57.4, -29.2 - d * .6], [18.6 + d, 53.6, -31.5], [18.6 + d, 52, -31.5]],
+      .8, m, false, 14, 'Bateria → ESC da esquerda');
+  }
+  // sinal de cada ESC + 1 GND (o fio vermelho do ESC fica sem ligar)
+  const sig = (s, k, m, j, sub) => {
+    const a = R.piHdr(k), x0 = 22.8 + j * 1.1;
+    const mid = s < 0 ? [[14, 57.6, -29.6 + j * .4], [9.6, 62.5, -26.6 + j * .6], [12, 69, -32 + j * .3], [30, 72.4, -33 + j * .25], [56, 72.8, -33 + j * .25], [a.x, 77.4, -32.6]]
+      : [[14, 57.6, 29.6], [4.4, 62.5, 26.4], [3.2, 69, 28], [12, 83.4, 24], [40, 84.6, -16], [a.x, 80, -33], [a.x, 76.6, -32.4]];
+    W([[x0, 52, 31.5 * s], [x0, 53.6, 31.2 * s], ...mid, a], .5, m, false, 14, sub);
+  };
+  sig(-1, 15, MAT.wW, 0, 'Sinal do ESC de baixo → GPIO23 (pino 16)');
+  sig(-1, 13, MAT.wK, 1, 'GND dos ESCs → pino 14 do Pi');
+  sig(1, 17, MAT.wW, 0, 'Sinal do ESC de cima → GPIO24 (pino 18)');
 }
 function rebuildWires(R, onlyDyn) {
   const v = V3(); R.stand.updateMatrixWorld(true);
@@ -956,8 +1158,8 @@ function rebuildWires(R, onlyDyn) {
     if (onlyDyn && !w.dyn) continue;
     const pts = w.pts.map(p => typeof p === 'string' ? R.root.worldToLocal(R.anchors[p].getWorldPosition(v.clone())) : (p.isVector3 ? p.clone() : V3(...p)));
     const geo = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, false, 'centripetal'), Math.max(28, pts.length * 12), w.r, 7, false);
-    if (w.mesh) { w.mesh.geometry.dispose(); w.mesh.geometry = geo; } else w.mesh = R.b.mesh(geo, w.mat, 'fiacao', 'Cabo', R.wireGroup, false);
+    if (w.mesh) { w.mesh.geometry.dispose(); w.mesh.geometry = geo; } else w.mesh = R.b.mesh(geo, w.mat, 'fiacao', w.sub || 'Cabo', w.g || R.wireGroup, false);
   }
 }
 
-export { buildRover, updateFasteners, steerPose, linkInit, rebuildWires, MAT };
+export { buildRover, updateFasteners, steerPose, linkInit, rebuildWires, stepVis, updateSuccao, MAT };

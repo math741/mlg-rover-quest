@@ -1,6 +1,6 @@
 // Passo a passo da montagem: o mesmo modelo 3D do visualizador, peça por peça.
 import * as THREE from 'three';
-import { buildRover, updateFasteners, steerPose, rebuildWires } from './modelo.js';
+import { buildRover, updateFasteners, steerPose, rebuildWires, stepVis } from './modelo.js';
 import { PECAS, TESTE_ID } from './pecas.js';
 
 const clamp01 = v => Math.max(0, Math.min(1, v));
@@ -161,10 +161,9 @@ export class Montagem {
     for (const g of R.groups) {
       const f = fac(g.userData.step);
       g.visible = f >= 0;
-      g.position.copy(g.userData.base).addScaledVector(g.userData.ex, Math.max(0, f) * 1.15);
+      g.position.copy(g.userData.base).addScaledVector(g.userData.exA || g.userData.ex, Math.max(0, f) * 1.15);
     }
-    if (R.tieGroup) R.tieGroup.visible = k >= 8;
-    if (R.wireGroup) R.wireGroup.visible = k >= 12;
+    stepVis(R, k);                         // barras de direção e fios aparecem no passo deles
     updateFasteners(R, f => f.step < k ? 0 : f.step === k ? 1 - ease(clamp01((p - .45) / .55)) : -1);
   }
 }
